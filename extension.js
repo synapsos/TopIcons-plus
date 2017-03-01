@@ -38,7 +38,9 @@ let trayRemovedId = 0;
 let icons = [];
 let iconsBoxLayout = null;
 let iconsContainer = null;
-let blacklist = ["skype","SkypeNotification@chrisss404.gmail.com"]; // blacklist: array of uuid and wmClass (icon application name)
+// list of apps to hide, contains app name (wmClass) and uuid of corresponding extension
+let blacklist = [{app: "skype", uuid: "SkypeNotification@chrisss404.gmail.com"},
+                 {app: "steam", uuid: "steam-indicator@baer.space"}];
 
 function init() { }
 
@@ -67,11 +69,13 @@ function disable() {
 
 function onTrayIconAdded(o, icon, role, delay=1000) {
 
-    // loop through the array and hide the extension if extension X is enabled and corresponding application is running
-    let wmClass = icon.wm_class ? icon.wm_class.toLowerCase() : '';
-    for (let i = 0; i < blacklist.length; i++) {
-        if (ExtensionUtils.extensions[blacklist[i+1]] !== undefined && ExtensionUtils.extensions[blacklist[i+1]].state === 1 && wmClass === blacklist[i])
+    // hide the blacklisted indicator if corresponding extension is found and is running
+    let wmClass = icon.wm_class ? icon.wm_class.toLowerCase() : '';    
+    for (let indicator of blacklist) {
+        let extension = ExtensionUtils.extensions[indicator.uuid];
+        if (extension !== undefined && extension.state === 1 && wmClass === indicator.app) {
             return;
+        }
     }
 
     let iconContainer = new St.Button({child: icon, visible: false});
